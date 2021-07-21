@@ -69,6 +69,29 @@ const cartModalCloseByEscHandler = event =>  {
     }
 };
 
+// ------- request to DB -------
+const getData = async () => {
+    const response = await fetch('db.json');
+    if (response.ok) {
+        const data = await response.json();
+        return data;
+    } else {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+};
+
+const getGoods = (callback) => {
+    getData()
+        .then(data => {
+            callback(data);
+        })
+        .catch(err => {
+            console.error(err);
+        });
+};
+
+getGoods(data => console.warn(data));
+
 headerCityButton.addEventListener('click', headerCityButtonHandler);
 
 subheaderCart.addEventListener('click', cartModalOpenHandler);
