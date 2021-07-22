@@ -21,6 +21,10 @@ const headerCityButtonHandler = () => {
     }
 };
 
+// ------- save contents of the cart to the Local Storage -------
+const getLocalStorage = () => JSON?.parse(localStorage.getItem('cart-lomoda')) || [];
+const setLocalStorage = data => localStorage.setItem('cart-lomoda', JSON.stringify(data));
+
 // ------- scroll lock when cart is open -------
 const disableScroll = () => {
     // document.body.style.overflow = 'hidden';
