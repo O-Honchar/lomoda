@@ -161,3 +161,74 @@ try {
 } catch (err) {
     console.warn(err);
 }
+
+// ------- product page -------
+try {
+    const cardGood = document.querySelector('.card-good');
+    if (!cardGood) {
+        throw 'This is not a product page!';
+    }
+
+    const cardGoodImage = document.querySelector('.card-good__image');
+    const cardGoodBrand = document.querySelector('.card-good__brand');
+    const cardGoodTitle = document.querySelector('.card-good__title');
+    const cardGoodPrice = document.querySelector('.card-good__price');
+    const cardGoodSelectWrapper = document.querySelectorAll('.card-good__select__wrapper');
+    const cardGoodColor = document.querySelector('.card-good__color');
+    const cardGoodColorList = document.querySelector('.card-good__color-list');
+    const cardGoodSizes = document.querySelector('.card-good__sizes');
+    const cardGoodSizesList = document.querySelector('.card-good__sizes-list');
+
+    const renderSelectList = (selectList, data) => {
+        const list = data.reduce(
+            // (acc, item, idx) => acc + `<li class="card-good__select-item" data-id="${idx}">${item}</li>`, ''
+            (acc, item) => acc + `<li class="card-good__select-item">${item}</li>`, ''
+        );
+        selectList.textContent = '';
+        selectList.insertAdjacentHTML('beforeend', list);
+    };
+
+    const renderCardGood = ([{photo, brand, name, cost, color, sizes}]) => {
+        cardGoodImage.src = `./goods-image/${photo}`;
+        cardGoodImage.alt = `${brand} ${name}`;
+        cardGoodBrand.textContent = brand;
+        cardGoodTitle.textContent = name;
+        cardGoodPrice.textContent = `${cost} ₴`;
+        if (color) {
+            cardGoodColor.textContent = color[0];
+            // cardGoodColor.dataset.id = 0;
+            renderSelectList(cardGoodColorList, color);
+        } else {
+            cardGoodColor.hidden = true;
+        }
+        if (sizes) {
+            cardGoodSizes.textContent = sizes[0];
+            // cardGoodSizes.dataset.id = 0;
+            renderSelectList(cardGoodSizesList, sizes);
+        } else {
+            cardGoodSizes.hidden = true;
+        }
+    };
+
+    getGoods(renderCardGood, 'id', hash);
+
+    cardGoodSelectWrapper.forEach(item =>
+        item.addEventListener('click', event => {
+            const target = event.target;
+
+            if (target.classList.contains('card-good__select')) {
+                target.classList.toggle('card-good__select__open');
+            }
+
+            if (target.classList.contains('card-good__select-item')) {
+                const cardGoodSelect = item.querySelector('.card-good__select');
+                cardGoodSelect.textContent = target.textContent;
+                // cardGoodSelect.dataset.id = target.dataset.id;
+                cardGoodSelect.classList.remove('card-good__select__open');
+            }
+        })
+    );
+
+} catch (err) {
+    console.warn(err);
+}
