@@ -28,6 +28,23 @@ const headerCityButtonHandler = () => {
 const getLocalStorage = () => JSON?.parse(localStorage.getItem('cart-lomoda')) || [];
 const setLocalStorage = data => localStorage.setItem('cart-lomoda', JSON.stringify(data));
 
+// ------- declension of the number of goods -------
+const declOfNum = (n, titles) => {
+    return n + ' ' + titles[n % 10 === 1 && n % 100 !== 11 ?
+        0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
+};
+
+// -------- updating count of goods in the cart -------
+const cartGoodsCount = () => {
+    if (getLocalStorage().length) {
+        subheaderCart.textContent = declOfNum(getLocalStorage().length, ['товар', 'товара', 'товаров']);
+    } else {
+        subheaderCart.textContent = 'Корзина';
+    }
+};
+
+cartGoodsCount();
+
 // ------- cart -------
 const createCartProduct = ({id, brand, name, color, size, cost}, idx) => {
     const tr =
@@ -70,6 +87,8 @@ const deleteItemFromCart = id => {
         cardGoodBuy.classList.remove('delete');
         cardGoodBuy.textContent = 'Добавить в корзину';
     }
+
+    cartGoodsCount();
 };
 
 cartListGoods.addEventListener('click', event => {
@@ -281,8 +300,6 @@ try {
         cardGoodBuy.addEventListener('click', () => {
             if (cardGoodBuy.classList.contains('delete')) {
                 deleteItemFromCart(id);
-                // cardGoodBuy.classList.remove('delete');
-                // cardGoodBuy.textContent = 'Добавить в корзину';
                 return;
             }
             if (color) {
@@ -298,6 +315,8 @@ try {
             const cartData = getLocalStorage();
             cartData.push(goodData);
             setLocalStorage(cartData);
+
+            cartGoodsCount();
         });
     };
 
