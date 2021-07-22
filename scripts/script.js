@@ -3,6 +3,9 @@
 const headerCityButton = document.querySelector('.header__city-button');
 const subheaderCart = document.querySelector('.subheader__cart');
 const cartOverlay = document.querySelector('.cart-overlay');
+const cardGoodBuy = document.querySelector('.card-good__buy');
+const cartListGoods = document.querySelector('.cart__list-goods');
+const cartTotalCost = document.querySelector('.cart__total-cost');
 
 let hash = location.hash.substring(1);
 
@@ -20,6 +23,81 @@ const headerCityButtonHandler = () => {
         localStorage.setItem('lomoda-location', city);
     }
 };
+
+// ------- save contents of the cart to the Local Storage -------
+const getLocalStorage = () => JSON?.parse(localStorage.getItem('cart-lomoda')) || [];
+const setLocalStorage = data => localStorage.setItem('cart-lomoda', JSON.stringify(data));
+
+// ------- declension of the number of goods -------
+const declOfNum = (n, titles) => {
+    return n + ' ' + titles[n % 10 === 1 && n % 100 !== 11 ?
+        0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
+};
+
+// -------- updating count of goods in the cart -------
+const cartGoodsCount = () => {
+    if (getLocalStorage().length) {
+        subheaderCart.textContent = declOfNum(getLocalStorage().length, ['товар', 'товара', 'товаров']);
+    } else {
+        subheaderCart.textContent = 'Корзина';
+    }
+};
+
+cartGoodsCount();
+
+// ------- cart -------
+const createCartProduct = ({id, brand, name, color, size, cost}, idx) => {
+    const tr =
+    `
+        <tr>
+            <td>${idx + 1}</td>
+            <td>${brand} ${name}</td>
+            ${color ? `<td>${color}</td>` : `<td>-</td>`}
+            ${size ? `<td>${size}</td>` : `<td>-</td>`}
+            <td>${cost} &#8372;</td>
+            <td><button class="btn-delete" data-id="${id}">&times;</button></td>
+        </tr>
+    `;
+
+    return tr;
+};
+
+const renderCart = () => {
+    let totalPrice = 0;
+    const cartItems = getLocalStorage();
+
+    const tbody = cartItems.reduce(
+        (acc, item, idx) => acc + createCartProduct(item, idx), ''
+    );
+    cartListGoods.textContent = '';
+    cartListGoods.insertAdjacentHTML('beforeend', tbody);
+
+    totalPrice = cartItems.reduce(
+        (acc, item) => acc + item.cost, 0
+    );
+    cartTotalCost.textContent = `${totalPrice} ₴`;
+};
+
+const deleteItemFromCart = id => {
+    const cartItems = getLocalStorage();
+    const newCartItems = cartItems.filter(item => item.id !== id);
+    setLocalStorage(newCartItems);
+
+    if (cardGoodBuy) {
+        cardGoodBuy.classList.remove('delete');
+        cardGoodBuy.textContent = 'Добавить в корзину';
+    }
+
+    cartGoodsCount();
+};
+
+cartListGoods.addEventListener('click', event => {
+    const target = event.target;
+    if (target.matches('.btn-delete')) {
+        deleteItemFromCart(target.dataset.id);
+        renderCart();
+    }
+});
 
 // ------- scroll lock when cart is open -------
 const disableScroll = () => {
@@ -49,6 +127,7 @@ const enableScroll = () => {
 // ------- cart modal window -------
 const cartModalOpenHandler = () => {
     cartOverlay.classList.add('cart-overlay-open');
+    renderCart();
     disableScroll();
 };
 
@@ -188,7 +267,11 @@ try {
         selectList.insertAdjacentHTML('beforeend', list);
     };
 
-    const renderCardGood = ([{photo, brand, name, cost, color, sizes}]) => {
+    const renderCardGood = ([{id, photo, brand, name, cost, color, sizes}]) => {
+
+        const goodData = {id, brand, name, cost};
+        const inCart = getLocalStorage().some(item => item.id === id);
+
         cardGoodImage.src = `./goods-image/${photo}`;
         cardGoodImage.alt = `${brand} ${name}`;
         cardGoodBrand.textContent = brand;
@@ -208,6 +291,33 @@ try {
         } else {
             cardGoodSizes.hidden = true;
         }
+
+        if (inCart) {
+            cardGoodBuy.classList.add('delete');
+            cardGoodBuy.textContent = 'Удалить из корзины';
+        }
+
+        cardGoodBuy.addEventListener('click', () => {
+            if (cardGoodBuy.classList.contains('delete')) {
+                deleteItemFromCart(id);
+                return;
+            }
+            if (color) {
+                goodData.color = cardGoodColor.textContent;
+            }
+            if (sizes) {
+                goodData.size = cardGoodSizes.textContent;
+            }
+
+            cardGoodBuy.classList.add('delete');
+            cardGoodBuy.textContent = 'Удалить из корзины';
+
+            const cartData = getLocalStorage();
+            cartData.push(goodData);
+            setLocalStorage(cartData);
+
+            cartGoodsCount();
+        });
     };
 
     getGoods(renderCardGood, 'id', hash);
